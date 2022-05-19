@@ -20,6 +20,7 @@ type fromDiscord struct {
 	streaming     bool // The buffer streaming is streaming out
 	lastSequence  uint16
 	lastTimeStamp uint32
+	userID				string
 }
 
 // DiscordDuplex Handle discord voice stream
@@ -241,6 +242,7 @@ func (dd *DiscordDuplex) discordReceivePCM(ctx context.Context, cancel context.C
 		}
 
 		dd.discordMutex.Lock()
+		dd.Bridge.DiscordUserSSRCMutex.RLock()
 
 		_, ok = dd.fromDiscordMap[p.SSRC]
 		if !ok {
@@ -248,6 +250,7 @@ func (dd *DiscordDuplex) discordReceivePCM(ctx context.Context, cancel context.C
 			newStream.pcm = make(chan []int16, 100)
 			newStream.receiving = false
 			newStream.streaming = false
+			newStream.userID = dd.Bridge.DiscordUserSSRC[p.SSRC]
 			newStream.decoder, err = gopus.NewDecoder(48000, 1) // Decode into mono
 			if err != nil {
 				OnError("error creating opus decoder", err)
@@ -257,6 +260,12 @@ func (dd *DiscordDuplex) discordReceivePCM(ctx context.Context, cancel context.C
 
 			dd.fromDiscordMap[p.SSRC] = newStream
 		}
+		if len(dd.fromDiscordMap[p.SSRC].userID) == 0 {
+			s := dd.fromDiscordMap[p.SSRC]
+			s.userID = dd.Bridge.DiscordUserSSRC[p.SSRC]
+			dd.fromDiscordMap[p.SSRC] = s
+		}
+		dd.Bridge.DiscordUserSSRCMutex.RUnlock()
 
 		s := dd.fromDiscordMap[p.SSRC]
 
@@ -297,6 +306,15 @@ func (dd *DiscordDuplex) discordReceivePCM(ctx context.Context, cancel context.C
 			u := l + 480
 
 			next = p.PCM[l:u]
+			dd.Bridge.DiscordUserVolumeMutex.RLock()
+			for i := 0; i < len(next); i++ {
+				volume, ok := dd.Bridge.DiscordUserVolume[s.userID]
+				if !ok {
+					volume = 1.0
+				}
+				next[i] = int16(float64(next[i]) * volume)
+			}
+			dd.Bridge.DiscordUserVolumeMutex.RUnlock()
 
 			select {
 			case dd.fromDiscordMap[p.SSRC].pcm <- next:

@@ -82,6 +82,14 @@ type BridgeState struct {
 	DiscordUsers      map[string]DiscordUser
 	DiscordUsersMutex sync.Mutex
 
+	// Map of assotiated SSRC streams
+	DiscordUserSSRC      map[uint32]string
+	DiscordUserSSRCMutex sync.RWMutex
+
+	// Discord user volume settings on mumble
+	DiscordUserVolume		 		map[string]float64
+	DiscordUserVolumeMutex 	sync.RWMutex
+
 	// Map of Mumble users tracked by this bridge
 	MumbleUsers      map[string]bool
 	MumbleUsersMutex sync.Mutex

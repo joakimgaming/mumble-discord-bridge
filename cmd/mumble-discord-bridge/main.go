@@ -159,6 +159,7 @@ func main() {
 	Bridge.BridgeConfig.MumbleConfig.Attach(gumbleutil.Listener{
 		Connect:    Bridge.MumbleListener.MumbleConnect,
 		UserChange: Bridge.MumbleListener.MumbleUserChange,
+		TextMessage: Bridge.MumbleListener.MumbleTextMessage,
 		// ChannelChange: Bridge.MumbleListener.MumbleChannelChange,
 	})
 
@@ -182,6 +183,7 @@ func main() {
 	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.MessageCreate)
 	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.GuildCreate)
 	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.VoiceUpdate)
+	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.VoiceSpeakingUpdate)
 
 	// Open Discord websocket
 	err = Bridge.DiscordSession.Open()
