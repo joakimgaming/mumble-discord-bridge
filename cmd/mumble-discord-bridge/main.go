@@ -141,6 +141,8 @@ func main() {
 		},
 		Connected:    false,
 		DiscordUsers: make(map[string]bridge.DiscordUser),
+		DiscordUserVolume: make(map[string]float64),
+		DiscordUserSSRC: make(map[uint32]string),
 		MumbleUsers:  make(map[string]bool),
 	}
 
@@ -183,7 +185,6 @@ func main() {
 	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.MessageCreate)
 	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.GuildCreate)
 	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.VoiceUpdate)
-	Bridge.DiscordSession.AddHandler(Bridge.DiscordListener.VoiceSpeakingUpdate)
 
 	// Open Discord websocket
 	err = Bridge.DiscordSession.Open()

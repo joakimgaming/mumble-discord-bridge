@@ -144,6 +144,7 @@ func (b *BridgeState) StartBridge() {
 		b.DiscordVoice.Disconnect()
 		return
 	}
+	b.DiscordVoice.AddHandler(b.DiscordListener.VoiceSpeakingUpdate)
 	defer b.DiscordVoice.Disconnect()
 	defer b.DiscordVoice.Speaking(false)
 	log.Println("Discord Voice Connected")
@@ -264,6 +265,8 @@ func (b *BridgeState) StartBridge() {
 	b.MumbleUsers = make(map[string]bool)
 	b.MumbleUsersMutex.Unlock()
 	b.DiscordUsers = make(map[string]DiscordUser)
+	b.DiscordUserSSRC = make(map[uint32]string)
+	b.DiscordUserVolume = make(map[string]float64)
 }
 
 func (b *BridgeState) DiscordStatusUpdate() {

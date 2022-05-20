@@ -237,7 +237,7 @@ func (l *DiscordListener) VoiceUpdate(s *discordgo.Session, event *discordgo.Voi
 	}
 }
 
-func (l *DiscordListener) VoiceSpeakingUpdate(session *discordgo.Session, event *discordgo.VoiceSpeakingUpdate) {
+func (l *DiscordListener) VoiceSpeakingUpdate(vc *discordgo.VoiceConnection, event *discordgo.VoiceSpeakingUpdate) {
 	l.Bridge.DiscordUserSSRCMutex.Lock()
 	defer l.Bridge.DiscordUserSSRCMutex.Unlock()
 	l.Bridge.DiscordUserSSRC[uint32(event.SSRC)] = event.UserID

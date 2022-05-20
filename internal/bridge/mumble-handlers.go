@@ -99,9 +99,9 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 	prefix := "/"+l.Bridge.BridgeConfig.Command
 	if strings.HasPrefix(e.Message, prefix + " getdiscordusers") {
 		l.Bridge.DiscordUsersMutex.Lock()
-		message := "Current users in discord:\n"
+		message := "Current users in discord:<br/>"
 		for userId, user := range l.Bridge.DiscordUsers {
-			message += user.username + " → " + userId + "\n"
+			message += user.username + " → " + userId + "<br/>"
 		}
 		l.Bridge.DiscordUsersMutex.Unlock()
 		e.Sender.Send(message)
@@ -109,7 +109,7 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 	if strings.HasPrefix(e.Message, prefix + " setdiscorduservolume") {
 		command := strings.Split(e.Message, " ")
 		if len(command) != 4 {
-			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + " setdiscorduservolume <ID> <VOLUME>'")
+			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + " setdiscorduservolume \\<ID\\> \\<VOLUME\\>'")
 			return
 		}
 		if _, ok := l.Bridge.DiscordUsers[command[2]]; !ok {
@@ -132,5 +132,6 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		}
 		l.Bridge.DiscordUserVolumeMutex.Lock()
 		l.Bridge.DiscordUserVolume[command[2]] = volumepercent/100
+		l.Bridge.DiscordUserVolumeMutex.Unlock()
 	}
 }

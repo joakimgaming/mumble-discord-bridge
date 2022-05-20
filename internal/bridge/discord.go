@@ -308,11 +308,9 @@ func (dd *DiscordDuplex) discordReceivePCM(ctx context.Context, cancel context.C
 			next = p.PCM[l:u]
 			dd.Bridge.DiscordUserVolumeMutex.RLock()
 			for i := 0; i < len(next); i++ {
-				volume, ok := dd.Bridge.DiscordUserVolume[s.userID]
-				if !ok {
-					volume = 1.0
+				if volume, ok := dd.Bridge.DiscordUserVolume[dd.fromDiscordMap[p.SSRC].userID]; ok {
+					next[i] = int16(float64(next[i]) * volume)
 				}
-				next[i] = int16(float64(next[i]) * volume)
 			}
 			dd.Bridge.DiscordUserVolumeMutex.RUnlock()
 
