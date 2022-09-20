@@ -139,11 +139,11 @@ func main() {
 			DiscordDisableBotStatus:    *discordDisableBotStatus,
 			Version:                    version,
 		},
-		Connected:    false,
-		DiscordUsers: make(map[string]bridge.DiscordUser),
+		Connected:         false,
+		DiscordUsers:      make(map[string]bridge.DiscordUser),
 		DiscordUserVolume: make(map[string]float64),
-		DiscordUserSSRC: make(map[uint32]string),
-		MumbleUsers:  make(map[string]bool),
+		DiscordUserSSRC:   make(map[uint32]string),
+		MumbleUsers:       make(map[string]bool),
 	}
 
 	bridge.PromApplicationStartTime.SetToCurrentTime()
@@ -159,8 +159,8 @@ func main() {
 	}
 
 	Bridge.BridgeConfig.MumbleConfig.Attach(gumbleutil.Listener{
-		Connect:    Bridge.MumbleListener.MumbleConnect,
-		UserChange: Bridge.MumbleListener.MumbleUserChange,
+		Connect:     Bridge.MumbleListener.MumbleConnect,
+		UserChange:  Bridge.MumbleListener.MumbleUserChange,
 		TextMessage: Bridge.MumbleListener.MumbleTextMessage,
 		// ChannelChange: Bridge.MumbleListener.MumbleChannelChange,
 	})

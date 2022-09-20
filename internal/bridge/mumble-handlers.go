@@ -96,8 +96,8 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 	if e.Sender == nil {
 		return
 	}
-	prefix := "/"+l.Bridge.BridgeConfig.Command
-	if strings.HasPrefix(e.Message, prefix + " getdiscordusers") {
+	prefix := "/" //+ l.Bridge.BridgeConfig.Command <- I don't know what this is supposed to mean?
+	if strings.HasPrefix(e.Message, prefix+"users") {
 		l.Bridge.DiscordUsersMutex.Lock()
 		message := "Current users in discord:<br/>"
 		for userId, user := range l.Bridge.DiscordUsers {
@@ -106,14 +106,14 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		l.Bridge.DiscordUsersMutex.Unlock()
 		e.Sender.Send(message)
 	}
-	if strings.HasPrefix(e.Message, prefix + " setdiscorduservolume") {
+	if strings.HasPrefix(e.Message, prefix+"volume") {
 		command := strings.Split(e.Message, " ")
-		if len(command) != 4 {
-			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + " setdiscorduservolume \\<ID\\> \\<VOLUME\\>'")
+		if len(command) != 3 {
+			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + "volume (ID) (VOLUME)'")
 			return
 		}
-		if _, ok := l.Bridge.DiscordUsers[command[2]]; !ok {
-			e.Sender.Send("Invalid user! use '" + prefix + " getdiscordusers' to get a list of users")
+		if _, ok := l.Bridge.DiscordUsers[command[1]]; !ok {
+			e.Sender.Send("Invalid user! use '" + prefix + "users' to get a list of users")
 			return
 		}
 		// either volume percentage or volume as a float or just an int/number below 200
@@ -122,16 +122,18 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 			fmt.Println("you are bad at writing regex")
 			return
 		}
-		if !exp.MatchString(command[3]) {
+		if !exp.MatchString(command[2]) {
 			e.Sender.Send("Bad volume value! try a number less than or equal to 200")
+			return
 		}
-		volumepercent, err := strconv.ParseFloat(exp.FindStringSubmatch(command[3])[1], 64)
+		volumepercent, err := strconv.ParseFloat(exp.FindStringSubmatch(command[2])[0], 64)
 		if err != nil {
 			e.Sender.Send("Invalid volume value, how you manage to get this error is a whole nother question tho")
 			return
 		}
 		l.Bridge.DiscordUserVolumeMutex.Lock()
-		l.Bridge.DiscordUserVolume[command[2]] = volumepercent/100
+		l.Bridge.DiscordUserVolume[command[1]] = volumepercent / 100
 		l.Bridge.DiscordUserVolumeMutex.Unlock()
+		e.Sender.Send("Volume lowered for " + command[1])
 	}
 }
