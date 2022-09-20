@@ -136,4 +136,14 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		l.Bridge.DiscordUserVolumeMutex.Unlock()
 		e.Sender.Send("Volume lowered for " + command[1])
 	}
+	if strings.HasPrefix(e.Message, prefix+"changechannel") {
+		channelcommand := strings.Split(e.Message, " ")
+		if len(channelcommand) != 2 {
+			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + "changechannel (ID)'")
+			return
+		}
+		l.Bridge.DiscordChannelID = channelcommand[1]
+		l.Bridge.BridgeDie <- true
+		go l.Bridge.StartBridge()
+	}
 }
