@@ -46,7 +46,7 @@ type BridgeConfig struct {
 	Version                    string
 }
 
-//BridgeState manages dynamic information about the bridge during runtime
+// BridgeState manages dynamic information about the bridge during runtime
 type BridgeState struct {
 	// The configuration data for this bridge
 	BridgeConfig *BridgeConfig
@@ -87,8 +87,8 @@ type BridgeState struct {
 	DiscordUserSSRCMutex sync.RWMutex
 
 	// Discord user volume settings on mumble
-	DiscordUserVolume		 		map[string]float64
-	DiscordUserVolumeMutex 	sync.RWMutex
+	DiscordUserVolume      map[string]float64
+	DiscordUserVolumeMutex sync.RWMutex
 
 	// Map of Mumble users tracked by this bridge
 	MumbleUsers      map[string]bool
@@ -110,6 +110,21 @@ type BridgeState struct {
 
 	// Discord Voice channel to join
 	DiscordChannelID string
+
+	messagechannel string
+}
+
+func (b *BridgeState) DiscordChannels(s *discordgo.Session) {
+	channels, _ := s.GuildChannels(b.BridgeConfig.GID)
+	message := "<br/>Current channels in discord:<br/>"
+	for _, c := range channels {
+		// Check if channel is a guild voice channel
+		if c.Type != discordgo.ChannelTypeGuildVoice {
+			continue
+		}
+		message += c.Name + " → " + c.ID + "<br/>"
+	}
+	b.messagechannel = message
 }
 
 // startBridge established the voice connection

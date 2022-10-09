@@ -97,6 +97,13 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		return
 	}
 	prefix := "/" //+ l.Bridge.BridgeConfig.Command <- I don't know what this is supposed to mean?
+	if strings.HasPrefix(e.Message, prefix+"help") {
+		e.Sender.Send("<br/>/volume (ID) (VOLUME) - change volume on a discord user<br/>/users - shows discord users in channel<br/>" +
+			"/mute (ID) - mutes a person in discord<br/>/unmute (ID) - unmutes a person in discord<br/>" +
+			"/channels - shows all channels on the discord server<br/>/changechannel (ID) - switch discord channel")
+		return
+	}
+
 	if strings.HasPrefix(e.Message, prefix+"users") {
 		l.Bridge.DiscordUsersMutex.Lock()
 		message := "Current users in discord:<br/>"
@@ -106,6 +113,7 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		l.Bridge.DiscordUsersMutex.Unlock()
 		e.Sender.Send(message)
 	}
+
 	if strings.HasPrefix(e.Message, prefix+"volume") {
 		command := strings.Split(e.Message, " ")
 		if len(command) != 3 {
@@ -134,16 +142,53 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		l.Bridge.DiscordUserVolumeMutex.Lock()
 		l.Bridge.DiscordUserVolume[command[1]] = volumepercent / 100
 		l.Bridge.DiscordUserVolumeMutex.Unlock()
-		e.Sender.Send("Volume lowered for " + command[1])
+		e.Sender.Send("Volume changed for " + command[1])
 	}
+
+	if strings.HasPrefix(e.Message, prefix+"mute") {
+		command := strings.Split(e.Message, " ")
+		if len(command) != 2 {
+			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + "mute (ID)'")
+			return
+		}
+		if _, ok := l.Bridge.DiscordUsers[command[1]]; !ok {
+			e.Sender.Send("Invalid user! use '" + prefix + "users' to get a list of users")
+			return
+		}
+		l.Bridge.DiscordUserVolumeMutex.Lock()
+		l.Bridge.DiscordUserVolume[command[1]] = 0
+		l.Bridge.DiscordUserVolumeMutex.Unlock()
+		e.Sender.Send("Muted " + command[1])
+	}
+
+	if strings.HasPrefix(e.Message, prefix+"unmute") {
+		command := strings.Split(e.Message, " ")
+		if len(command) != 2 {
+			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + "unmute (ID)'")
+			return
+		}
+		if _, ok := l.Bridge.DiscordUsers[command[1]]; !ok {
+			e.Sender.Send("Invalid user! use '" + prefix + "users' to get a list of users")
+			return
+		}
+		l.Bridge.DiscordUserVolumeMutex.Lock()
+		l.Bridge.DiscordUserVolume[command[1]] = 1
+		l.Bridge.DiscordUserVolumeMutex.Unlock()
+		e.Sender.Send("Unmuted " + command[1])
+	}
+
 	if strings.HasPrefix(e.Message, prefix+"changechannel") {
-		channelcommand := strings.Split(e.Message, " ")
-		if len(channelcommand) != 2 {
+		command := strings.Split(e.Message, " ")
+		if len(command) != 2 {
 			e.Sender.Send("Invalid amount of arguments! usage: '" + prefix + "changechannel (ID)'")
 			return
 		}
-		l.Bridge.DiscordChannelID = channelcommand[1]
+		l.Bridge.DiscordChannelID = command[1]
 		l.Bridge.BridgeDie <- true
 		go l.Bridge.StartBridge()
+	}
+	if strings.HasPrefix(e.Message, prefix+"channels") {
+		l.Bridge.DiscordChannels(l.Bridge.DiscordSession)
+		e.Sender.Send(l.Bridge.messagechannel)
 	}
 }
