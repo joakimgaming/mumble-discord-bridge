@@ -185,7 +185,7 @@ func (l *MumbleListener) MumbleTextMessage(e *gumble.TextMessageEvent) {
 		}
 		l.Bridge.DiscordChannelID = command[1]
 		l.Bridge.BridgeDie <- true
-		go l.Bridge.StartBridge()
+		l.Bridge.StartBridge()
 	}
 	if strings.HasPrefix(e.Message, prefix+"channels") {
 		l.Bridge.DiscordChannels(l.Bridge.DiscordSession)

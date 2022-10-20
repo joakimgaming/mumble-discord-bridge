@@ -42,6 +42,8 @@ type BridgeConfig struct {
 	CID                        string
 	DiscordStartStreamingCount int
 	DiscordDisableText         bool
+	DiscordDmSpamming          bool
+	DiscordSpamChannel         string
 	DiscordDisableBotStatus    bool
 	Version                    string
 }
@@ -367,12 +369,20 @@ func (b *BridgeState) discordSendMessageAll(msg string) {
 		return
 	}
 
-	b.DiscordUsersMutex.Lock()
-	for id := range b.DiscordUsers {
-		du := b.DiscordUsers[id]
-		if du.dm != nil {
-			b.DiscordSession.ChannelMessageSend(du.dm.ID, msg)
+	if b.BridgeConfig.DiscordDmSpamming {
+		b.DiscordUsersMutex.Lock()
+		for id := range b.DiscordUsers {
+			du := b.DiscordUsers[id]
+			if du.dm != nil {
+				b.DiscordSession.ChannelMessageSend(du.dm.ID, msg)
+			}
 		}
+		b.DiscordUsersMutex.Unlock()
 	}
-	b.DiscordUsersMutex.Unlock()
+
+	if b.BridgeConfig.DiscordSpamChannel == "" {
+		return
+	} else {
+		b.DiscordSession.ChannelMessageSend(b.BridgeConfig.DiscordSpamChannel, msg)
+	}
 }
