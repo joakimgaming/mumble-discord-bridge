@@ -7,7 +7,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -119,10 +121,17 @@ type BridgeState struct {
 func (b *BridgeState) DiscordChannels(s *discordgo.Session) {
 	channels, _ := s.GuildChannels(b.BridgeConfig.GID)
 	message := "<br/>Current channels in discord:<br/>"
+	f := func(r rune) bool {
+		return r < 'A' || r > 'z'
+	}
+
 	for _, c := range channels {
 		// Check if channel is a guild voice channel
 		if c.Type != discordgo.ChannelTypeGuildVoice {
 			continue
+		}
+		if strings.IndexFunc(c.Name, f) != -1 {
+			c.Name = regexp.MustCompile(`[^a-öA-Ö0-9 ]+`).ReplaceAllString(c.Name, "")
 		}
 		message += c.Name + " → " + c.ID + "<br/>"
 	}
